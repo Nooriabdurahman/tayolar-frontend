@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import Tailor3DScene from '../components/landing/Tailor3DScene';
-import { API_ENDPOINTS } from '../config/api';
 
 const VerifyEmailPage = () => {
     const [code, setCode] = useState('');
@@ -26,7 +25,7 @@ const VerifyEmailPage = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post(API_ENDPOINTS.AUTH.VERIFY_EMAIL, {
+            const response = await axios.post('http://localhost:5000/api/auth/verify-email', {
                 email,
                 code
             });

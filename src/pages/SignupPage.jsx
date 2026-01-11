@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import Tailor3DScene from '../components/landing/Tailor3DScene';
-import { API_ENDPOINTS } from '../config/api';
 
 const SignupPage = () => {
     const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'CLIENT' });
@@ -21,7 +20,7 @@ const SignupPage = () => {
         setLoading(true);
 
         try {
-            await axios.post(API_ENDPOINTS.AUTH.SIGNUP, formData);
+            await axios.post('http://localhost:5000/api/auth/signup', formData);
 
             toast.success('Code sent! Please verify your email.');
             // Navigate to verify page with email
