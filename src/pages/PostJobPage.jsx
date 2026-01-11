@@ -2,19 +2,71 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, DollarSign, Calendar, Ruler, CheckCircle } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import ThreeClothingDisplay from '../components/ThreeClothingDisplay';
+import { API_ENDPOINTS } from '../config/api';
 
 const PostJobPage = () => {
     const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        title: '',
+        category: 'Alteration',
+        budget: '',
+        description: ''
+    });
+    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem('token');
+        return {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        };
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Please login to post a job');
+                navigate('/login');
+                return;
+            }
+
+            await axios.post(API_ENDPOINTS.JOBS, {
+                title: formData.title,
+                category: formData.category,
+                budget: parseFloat(formData.budget),
+                description: formData.description
+            }, getAuthHeaders());
+
             toast.success("Job Posted Successfully! Tailors will bid soon.");
-        }, 1500);
+            // Reset form
+            setFormData({
+                title: '',
+                category: 'Alteration',
+                budget: '',
+                description: ''
+            });
+            // Optionally navigate to jobs list or dashboard
+            setTimeout(() => navigate('/dashboard'), 1500);
+        } catch (error) {
+            console.error('Error posting job:', error);
+            toast.error(error.response?.data?.message || 'Failed to post job. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -48,13 +100,26 @@ const PostJobPage = () => {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <label className="block text-slate-300 mb-2 font-medium">Project Title</label>
-                            <input type="text" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g., Custom Wedding Suit Alteration" required />
+                            <input 
+                                type="text" 
+                                name="title"
+                                value={formData.title}
+                                onChange={handleChange}
+                                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none" 
+                                placeholder="e.g., Custom Wedding Suit Alteration" 
+                                required 
+                            />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-slate-300 mb-2 font-medium">Category</label>
-                                <select className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <select 
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleChange}
+                                    className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                                >
                                     <option>Alteration</option>
                                     <option>Bespoke / Custom</option>
                                     <option>Repair</option>
@@ -69,6 +134,9 @@ const PostJobPage = () => {
                                     <DollarSign className="absolute left-3 top-3.5 w-5 h-5 text-indigo-400" />
                                     <input 
                                         type="number" 
+                                        name="budget"
+                                        value={formData.budget}
+                                        onChange={handleChange}
                                         required
                                         min="1"
                                         step="0.01"
@@ -82,7 +150,14 @@ const PostJobPage = () => {
 
                         <div>
                             <label className="block text-slate-300 mb-2 font-medium">Description & Measurements</label>
-                            <textarea className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none h-32" placeholder="Please describe the fabric, fit preference, and any specific measurements..."></textarea>
+                            <textarea 
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none h-32" 
+                                placeholder="Please describe the fabric, fit preference, and any specific measurements..."
+                                required
+                            ></textarea>
                         </div>
 
                         <div className="border border-dashed border-slate-600 rounded-xl p-8 text-center hover:bg-slate-800/30 transition-colors cursor-pointer">

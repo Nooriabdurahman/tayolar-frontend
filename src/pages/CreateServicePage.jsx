@@ -2,18 +2,83 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Scissors, DollarSign, Clock, Layout } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import TailorWorkingScene from '../components/landing/TailorWorkingScene';
+import { API_ENDPOINTS } from '../config/api';
 
 const CreateServicePage = () => {
     const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        skills: [],
+        price: '',
+        turnaround: '7 Days',
+        description: ''
+    });
+    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const toggleSkill = (skill) => {
+        setFormData(prev => ({
+            ...prev,
+            skills: prev.skills.includes(skill)
+                ? prev.skills.filter(s => s !== skill)
+                : [...prev.skills, skill]
+        }));
+    };
+
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem('token');
+        return {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        };
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Please login to create a service');
+                navigate('/login');
+                return;
+            }
+
+            await axios.post(API_ENDPOINTS.SERVICES, {
+                name: formData.name,
+                skills: formData.skills,
+                price: parseFloat(formData.price),
+                turnaround: formData.turnaround,
+                description: formData.description
+            }, getAuthHeaders());
+
             toast.success("Service Created! Clients can now hire you.");
-        }, 1500);
+            // Reset form
+            setFormData({
+                name: '',
+                skills: [],
+                price: '',
+                turnaround: '7 Days',
+                description: ''
+            });
+            // Optionally navigate to services list or dashboard
+            setTimeout(() => navigate('/dashboard'), 1500);
+        } catch (error) {
+            console.error('Error creating service:', error);
+            toast.error(error.response?.data?.message || 'Failed to create service. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -51,7 +116,15 @@ const CreateServicePage = () => {
                                 <label className="flex items-center text-yellow-400 mb-2 font-bold">
                                     <Layout className="w-5 h-5 mr-2" /> Service Name
                                 </label>
-                                <input type="text" className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-white/30 focus:border-yellow-400 transition-colors outline-none" placeholder="e.g. Bespoke 3-Piece Suit" required />
+                                <input 
+                                    type="text" 
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-white/30 focus:border-yellow-400 transition-colors outline-none" 
+                                    placeholder="e.g. Bespoke 3-Piece Suit" 
+                                    required 
+                                />
                             </div>
 
                             <div>
@@ -60,7 +133,17 @@ const CreateServicePage = () => {
                                 </label>
                                 <div className="flex flex-wrap gap-2">
                                     {['Pattern Cutting', 'Embroidery', 'Alterations', 'Design'].map(skill => (
-                                        <span key={skill} className="px-3 py-1 bg-white/10 rounded-full text-xs text-white cursor-pointer hover:bg-yellow-400 hover:text-black transition-colors">{skill}</span>
+                                        <span 
+                                            key={skill} 
+                                            onClick={() => toggleSkill(skill)}
+                                            className={`px-3 py-1 rounded-full text-xs text-white cursor-pointer transition-colors ${
+                                                formData.skills.includes(skill) 
+                                                    ? 'bg-yellow-400 text-black' 
+                                                    : 'bg-white/10 hover:bg-yellow-400 hover:text-black'
+                                            }`}
+                                        >
+                                            {skill}
+                                        </span>
                                     ))}
                                 </div>
                             </div>
@@ -72,6 +155,9 @@ const CreateServicePage = () => {
                                     </label>
                                     <input 
                                         type="number" 
+                                        name="price"
+                                        value={formData.price}
+                                        onChange={handleChange}
                                         required
                                         min="1"
                                         step="0.01"
@@ -84,7 +170,12 @@ const CreateServicePage = () => {
                                     <label className="flex items-center text-yellow-400 mb-2 font-bold">
                                         <Clock className="w-5 h-5 mr-2" /> Turnaround
                                     </label>
-                                    <select className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white focus:border-yellow-400 transition-colors outline-none">
+                                    <select 
+                                        name="turnaround"
+                                        value={formData.turnaround}
+                                        onChange={handleChange}
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white focus:border-yellow-400 transition-colors outline-none"
+                                    >
                                         <option>3 Days</option>
                                         <option>7 Days</option>
                                         <option>14 Days</option>
@@ -97,7 +188,14 @@ const CreateServicePage = () => {
                                 <label className="flex items-center text-yellow-400 mb-2 font-bold">
                                     Description
                                 </label>
-                                <textarea className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-white/30 focus:border-yellow-400 transition-colors outline-none h-32" placeholder="Describe your process and what makes your service unique..."></textarea>
+                                <textarea 
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-white/30 focus:border-yellow-400 transition-colors outline-none h-32" 
+                                    placeholder="Describe your process and what makes your service unique..."
+                                    required
+                                ></textarea>
                             </div>
 
                             <button
