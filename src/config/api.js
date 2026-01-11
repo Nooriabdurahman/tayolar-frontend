@@ -13,4 +13,14 @@ export const API_ENDPOINTS = {
     },
     JOBS: `${API_BASE_URL}/api/jobs`,
     SERVICES: `${API_BASE_URL}/api/services`,
+    ADMIN: {
+        CARDS: `${API_BASE_URL}/api/admin/cards`,
+        CARDS_ACTIVE: `${API_BASE_URL}/api/admin/cards/active`,
+        COMMISSION_SETTINGS: `${API_BASE_URL}/api/admin/commission/settings`,
+        COMMISSIONS: `${API_BASE_URL}/api/admin/commissions`,
+        COMMISSION_STATS: `${API_BASE_URL}/api/admin/commission/stats`,
+    },
+    CARDS: {
+        ACTIVE: `${API_BASE_URL}/api/cards/active`,
+    },
 };

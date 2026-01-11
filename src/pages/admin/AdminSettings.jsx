@@ -1,17 +1,80 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Save, Lock, DollarSign, Percent, Info } from 'lucide-react';
+import { CreditCard, Save, Lock, DollarSign, Percent, Info, Upload, X } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import axios from 'axios';
+import { API_ENDPOINTS } from '../../config/api';
 
 const AdminSettings = () => {
     const [loading, setLoading] = useState(false);
+    const [cardLoading, setCardLoading] = useState(false);
     const [cardData, setCardData] = useState({
         cardNumber: '',
         cardHolder: '',
         expiry: '',
         cvc: '',
     });
+    const [cardImage, setCardImage] = useState(null);
+    const [cardImagePreview, setCardImagePreview] = useState(null);
+    const [existingCard, setExistingCard] = useState(null);
     const [commissionRate, setCommissionRate] = useState(10);
+    const [commissionLoading, setCommissionLoading] = useState(false);
+
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem('token');
+        return {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                // Don't set Content-Type for FormData - browser will set it with boundary
+            },
+        };
+    };
+
+    const getJsonHeaders = () => {
+        const token = localStorage.getItem('token');
+        return {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        };
+    };
+
+    // Load existing card and commission settings
+    useEffect(() => {
+        loadActiveCard();
+        loadCommissionSettings();
+    }, []);
+
+    const loadActiveCard = async () => {
+        try {
+            const response = await axios.get(API_ENDPOINTS.ADMIN.CARDS_ACTIVE, getJsonHeaders());
+            if (response.data) {
+                setExistingCard(response.data);
+                setCardData({
+                    cardNumber: response.data.cardNumber || '',
+                    cardHolder: response.data.cardHolder || '',
+                    expiry: response.data.expiry || '',
+                    cvc: response.data.cvc || '',
+                });
+                setCardImagePreview(response.data.imageUrl || null);
+            }
+        } catch (error) {
+            console.error('Error loading card:', error);
+            // Card might not exist yet, that's okay
+        }
+    };
+
+    const loadCommissionSettings = async () => {
+        try {
+            const response = await axios.get(API_ENDPOINTS.ADMIN.COMMISSION_SETTINGS, getJsonHeaders());
+            if (response.data) {
+                setCommissionRate(response.data.rate || 10);
+            }
+        } catch (error) {
+            console.error('Error loading commission settings:', error);
+        }
+    };
 
     const handleCardInputChange = (e) => {
         let { name, value } = e.target;
@@ -27,30 +90,77 @@ const AdminSettings = () => {
         setCardData({ ...cardData, [name]: value });
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setCardImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCardImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSaveCard = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
+        setCardLoading(true);
+
+        try {
+            const formData = new FormData();
+            formData.append('cardNumber', cardData.cardNumber.replace(/\s/g, ''));
+            formData.append('cardHolder', cardData.cardHolder);
+            formData.append('expiry', cardData.expiry);
+            formData.append('cvc', cardData.cvc);
+            if (cardImage) {
+                formData.append('image', cardImage);
+            }
+
+            let response;
+            if (existingCard) {
+                // Update existing card
+                response = await axios.put(
+                    `${API_ENDPOINTS.ADMIN.CARDS}/${existingCard.id}`,
+                    formData,
+                    getAuthHeaders()
+                );
+            } else {
+                // Create new card
+                response = await axios.post(
+                    API_ENDPOINTS.ADMIN.CARDS,
+                    formData,
+                    getAuthHeaders()
+                );
+            }
+
+            setExistingCard(response.data);
             toast.success('Payment card saved successfully!');
-            // Store in localStorage for demo
-            localStorage.setItem('adminCard', JSON.stringify(cardData));
-        }, 1500);
+            setCardImage(null); // Clear the file input
+        } catch (error) {
+            console.error('Error saving card:', error);
+            toast.error(error.response?.data?.message || 'Failed to save card');
+        } finally {
+            setCardLoading(false);
+        }
     };
 
-    const handleSaveCommission = () => {
-        localStorage.setItem('adminCommissionRate', commissionRate.toString());
-        toast.success(`Commission rate set to ${commissionRate}%`);
-    };
+    const handleSaveCommission = async () => {
+        setCommissionLoading(true);
 
-    // Load saved data
-    React.useEffect(() => {
-        const savedCard = localStorage.getItem('adminCard');
-        const savedRate = localStorage.getItem('adminCommissionRate');
-        if (savedCard) setCardData(JSON.parse(savedCard));
-        if (savedRate) setCommissionRate(parseFloat(savedRate));
-    }, []);
+        try {
+            const response = await axios.put(
+                API_ENDPOINTS.ADMIN.COMMISSION_SETTINGS,
+                { rate: commissionRate },
+                getJsonHeaders()
+            );
+            toast.success(`Commission rate set to ${commissionRate}%`);
+        } catch (error) {
+            console.error('Error saving commission:', error);
+            toast.error(error.response?.data?.message || 'Failed to save commission rate');
+        } finally {
+            setCommissionLoading(false);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -82,6 +192,13 @@ const AdminSettings = () => {
                     <div className="p-6">
                         {/* Card Visualization */}
                         <div className="mb-6 w-full aspect-[1.586/1] rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-lg relative overflow-hidden">
+                            {cardImagePreview && (
+                                <img 
+                                    src={cardImagePreview} 
+                                    alt="Card" 
+                                    className="absolute inset-0 w-full h-full object-cover opacity-30"
+                                />
+                            )}
                             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
                             <div className="h-full flex flex-col justify-between relative z-10">
                                 <div className="flex justify-between items-start">
@@ -105,6 +222,39 @@ const AdminSettings = () => {
                         </div>
 
                         <form onSubmit={handleSaveCard} className="space-y-4">
+                            {/* Image Upload */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                    Card Image (Optional)
+                                </label>
+                                <div className="flex items-center gap-4">
+                                    <label className="flex-1 cursor-pointer">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            className="hidden"
+                                        />
+                                        <div className="w-full px-4 py-3 border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center justify-center gap-2 text-slate-600">
+                                            <Upload className="w-5 h-5" />
+                                            {cardImage ? 'Change Image' : 'Upload Image'}
+                                        </div>
+                                    </label>
+                                    {cardImagePreview && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setCardImage(null);
+                                                setCardImagePreview(existingCard?.imageUrl || null);
+                                            }}
+                                            className="px-4 py-3 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">
                                     Card Number
@@ -168,11 +318,11 @@ const AdminSettings = () => {
 
                             <button
                                 type="submit"
-                                disabled={loading}
+                                disabled={cardLoading}
                                 className="w-full mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                             >
                                 <Save className="w-5 h-5" />
-                                {loading ? 'Saving...' : 'Save Payment Card'}
+                                {cardLoading ? 'Saving...' : existingCard ? 'Update Payment Card' : 'Save Payment Card'}
                             </button>
                         </form>
                     </div>
@@ -246,10 +396,11 @@ const AdminSettings = () => {
 
                         <button
                             onClick={handleSaveCommission}
-                            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                            disabled={commissionLoading}
+                            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                         >
                             <Save className="w-5 h-5" />
-                            Save Commission Rate
+                            {commissionLoading ? 'Saving...' : 'Save Commission Rate'}
                         </button>
                     </div>
                 </motion.div>
@@ -259,4 +410,3 @@ const AdminSettings = () => {
 };
 
 export default AdminSettings;
-
