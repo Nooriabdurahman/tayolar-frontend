@@ -4,6 +4,7 @@ import { Upload, DollarSign, Calendar, Ruler, CheckCircle } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import ThreeClothingDisplay from '../components/ThreeClothingDisplay';
+import { API_ENDPOINTS } from '../config/api';
 
 const PostJobPage = () => {
     const [loading, setLoading] = useState(false);
@@ -37,7 +38,7 @@ const PostJobPage = () => {
         const demoClientId = "demo-client-id"; // Placeholder until auth is fully integrated
 
         try {
-            const response = await fetch('http://localhost:5000/api/jobs', {
+            const response = await fetch(API_ENDPOINTS.JOBS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

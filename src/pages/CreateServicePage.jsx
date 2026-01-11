@@ -4,6 +4,7 @@ import { Scissors, DollarSign, Clock, Layout } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import ThreeClothingDisplay from '../components/ThreeClothingDisplay';
+import { API_ENDPOINTS } from '../config/api';
 
 const CreateServicePage = () => {
     const [loading, setLoading] = useState(false);
@@ -42,7 +43,7 @@ const CreateServicePage = () => {
         const demoTailorId = "demo-tailor-id"; // Placeholder if auth middleware isn't ready
 
         try {
-            const response = await fetch('http://localhost:5000/api/services', {
+            const response = await fetch(API_ENDPOINTS.SERVICES, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

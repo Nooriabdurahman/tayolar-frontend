@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import ThreeBackground from '../components/ThreeBackground';
+import { API_ENDPOINTS } from '../config/api';
 
 const LoginPage = () => {
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -20,7 +21,7 @@ const LoginPage = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+            const response = await axios.post(API_ENDPOINTS.AUTH.LOGIN, formData);
             const { token, user } = response.data;
 
             localStorage.setItem('token', token);

@@ -4,6 +4,7 @@ import { User, Mail, MapPin, Camera, Save, LogOut } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { API_ENDPOINTS } from '../config/api';
 
 const UserDashboardPage = () => {
     const navigate = useNavigate();
@@ -31,7 +32,7 @@ const UserDashboardPage = () => {
                 return;
             }
 
-            const res = await axios.get('http://localhost:5000/api/users/profile', {
+            const res = await axios.get(API_ENDPOINTS.USERS.PROFILE, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -54,7 +55,7 @@ const UserDashboardPage = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            await axios.put('http://localhost:5000/api/users/profile', formData, {
+            await axios.put(API_ENDPOINTS.USERS.PROFILE, formData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
