@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, DollarSign, Calendar, Ruler, CheckCircle } from 'lucide-react';
+import { Upload, DollarSign, Calendar, Ruler, CheckCircle, X } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,8 @@ import { API_ENDPOINTS } from '../config/api';
 
 const PostJobPage = () => {
     const [loading, setLoading] = useState(false);
+    const [images, setImages] = useState([]);
+    const [previews, setPreviews] = useState([]);
     const [formData, setFormData] = useState({
         title: '',
         category: 'Alteration',
@@ -22,14 +24,35 @@ const PostJobPage = () => {
         setFormData({ ...formData, [name]: value });
     };
 
-    const getAuthHeaders = () => {
-        const token = localStorage.getItem('token');
-        return {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        };
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 5) {
+            toast.error("You can only upload up to 5 images");
+            return;
+        }
+
+        setImages(files);
+        const newPreviews = [];
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                newPreviews.push(reader.result);
+                if (newPreviews.length === files.length) {
+                    setPreviews(newPreviews);
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const removeImage = (index) => {
+        const newImages = [...images];
+        newImages.splice(index, 1);
+        setImages(newImages);
+
+        const newPreviews = [...previews];
+        newPreviews.splice(index, 1);
+        setPreviews(newPreviews);
     };
 
     const handleSubmit = async (e) => {
@@ -44,22 +67,35 @@ const PostJobPage = () => {
                 return;
             }
 
-            await axios.post(API_ENDPOINTS.JOBS, {
-                title: formData.title,
-                category: formData.category,
-                budget: parseFloat(formData.budget),
-                description: formData.description
-            }, getAuthHeaders());
+            const user = JSON.parse(localStorage.getItem('user'));
+            const clientId = user?.id;
+
+            const data = new FormData();
+            data.append('title', formData.title);
+            data.append('category', formData.category);
+            data.append('budget', formData.budget);
+            data.append('description', formData.description);
+            data.append('clientId', clientId);
+            images.forEach((image) => {
+                data.append('images', image);
+            });
+
+            await axios.post(API_ENDPOINTS.JOBS, data, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
 
             toast.success("Job Posted Successfully! Tailors will bid soon.");
-            // Reset form
             setFormData({
                 title: '',
                 category: 'Alteration',
                 budget: '',
                 description: ''
             });
-            // Optionally navigate to jobs list or dashboard
+            setImages([]);
+            setPreviews([]);
             setTimeout(() => navigate('/dashboard'), 1500);
         } catch (error) {
             console.error('Error posting job:', error);
@@ -85,7 +121,7 @@ const PostJobPage = () => {
                         <h2 className="text-3xl font-bold text-white mb-2">Visualize It</h2>
                         <p className="text-indigo-300">See your design come to life before you stitch.</p>
                     </div>
-                    <ThreeClothingDisplay />
+                    <ThreeClothingDisplay image="/assets/red-dress.png" />
                 </motion.div>
 
                 {/* Right Side: The Form */}
@@ -100,21 +136,21 @@ const PostJobPage = () => {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <label className="block text-slate-300 mb-2 font-medium">Project Title</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 name="title"
                                 value={formData.title}
                                 onChange={handleChange}
-                                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none" 
-                                placeholder="e.g., Custom Wedding Suit Alteration" 
-                                required 
+                                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                                placeholder="e.g., Custom Wedding Suit Alteration"
+                                required
                             />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-slate-300 mb-2 font-medium">Category</label>
-                                <select 
+                                <select
                                     name="category"
                                     value={formData.category}
                                     onChange={handleChange}
@@ -132,16 +168,16 @@ const PostJobPage = () => {
                                 </label>
                                 <div className="relative">
                                     <DollarSign className="absolute left-3 top-3.5 w-5 h-5 text-indigo-400" />
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         name="budget"
                                         value={formData.budget}
                                         onChange={handleChange}
                                         required
                                         min="1"
                                         step="0.01"
-                                        className="w-full bg-slate-800/50 border-2 border-indigo-500/50 rounded-xl py-3 pl-10 pr-3 text-white text-lg font-semibold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder-slate-500" 
-                                        placeholder="Enter amount (e.g., 150.00)" 
+                                        className="w-full bg-slate-800/50 border-2 border-indigo-500/50 rounded-xl py-3 pl-10 pr-3 text-white text-lg font-semibold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder-slate-500"
+                                        placeholder="Enter amount (e.g., 150.00)"
                                     />
                                     <p className="text-xs text-slate-400 mt-1">This is how much you're willing to pay for this job</p>
                                 </div>
@@ -150,19 +186,45 @@ const PostJobPage = () => {
 
                         <div>
                             <label className="block text-slate-300 mb-2 font-medium">Description & Measurements</label>
-                            <textarea 
+                            <textarea
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
-                                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none h-32" 
+                                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none h-32"
                                 placeholder="Please describe the fabric, fit preference, and any specific measurements..."
                                 required
                             ></textarea>
                         </div>
 
-                        <div className="border border-dashed border-slate-600 rounded-xl p-8 text-center hover:bg-slate-800/30 transition-colors cursor-pointer">
-                            <Upload className="w-8 h-8 text-indigo-500 mx-auto mb-2" />
-                            <p className="text-slate-400 text-sm">Upload Reference Images or Sketches</p>
+                        <div className="space-y-4">
+                            <label className="block text-slate-300 font-medium">Reference Images</label>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {previews.map((preview, index) => (
+                                    <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-white/10">
+                                        <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeImage(index)}
+                                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                                {previews.length < 5 && (
+                                    <div className="relative aspect-square bg-white/5 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 transition-all">
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                        />
+                                        <Upload className="w-6 h-6 text-indigo-400 mb-2" />
+                                        <span className="text-xs text-slate-400">Add Image</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <button

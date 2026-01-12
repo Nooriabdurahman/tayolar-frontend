@@ -102,6 +102,24 @@ const AdminSettings = () => {
         }
     };
 
+    const handleDeleteCard = async () => {
+        if (!existingCard || !window.confirm('Are you sure you want to delete this payment card?')) return;
+
+        setCardLoading(true);
+        try {
+            await axios.delete(`${API_ENDPOINTS.ADMIN.CARDS}/${existingCard.id}`, getJsonHeaders());
+            setExistingCard(null);
+            setCardData({ cardNumber: '', cardHolder: '', expiry: '', cvc: '' });
+            setCardImagePreview(null);
+            toast.success('Card deleted successfully');
+        } catch (error) {
+            console.error('Error deleting card:', error);
+            toast.error('Failed to delete card');
+        } finally {
+            setCardLoading(false);
+        }
+    };
+
     const handleSaveCard = async (e) => {
         e.preventDefault();
         setCardLoading(true);
@@ -165,7 +183,7 @@ const AdminSettings = () => {
     return (
         <div className="space-y-6">
             <Toaster position="top-right" />
-            
+
             {/* Header */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h1 className="text-3xl font-bold text-slate-900 mb-2">Admin Settings</h1>
@@ -193,9 +211,9 @@ const AdminSettings = () => {
                         {/* Card Visualization */}
                         <div className="mb-6 w-full aspect-[1.586/1] rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-lg relative overflow-hidden">
                             {cardImagePreview && (
-                                <img 
-                                    src={cardImagePreview} 
-                                    alt="Card" 
+                                <img
+                                    src={cardImagePreview}
+                                    alt="Card"
                                     className="absolute inset-0 w-full h-full object-cover opacity-30"
                                 />
                             )}
@@ -316,14 +334,27 @@ const AdminSettings = () => {
                                 </div>
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={cardLoading}
-                                className="w-full mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-                            >
-                                <Save className="w-5 h-5" />
-                                {cardLoading ? 'Saving...' : existingCard ? 'Update Payment Card' : 'Save Payment Card'}
-                            </button>
+                            <div className="flex gap-4 mt-6">
+                                <button
+                                    type="submit"
+                                    disabled={cardLoading}
+                                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                                >
+                                    <Save className="w-5 h-5" />
+                                    {cardLoading ? 'Saving...' : existingCard ? 'Update Card' : 'Save Card'}
+                                </button>
+                                {existingCard && (
+                                    <button
+                                        type="button"
+                                        onClick={handleDeleteCard}
+                                        disabled={cardLoading}
+                                        className="px-6 py-3 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 flex items-center justify-center gap-2 disabled:opacity-70"
+                                    >
+                                        <X className="w-5 h-5" />
+                                        Delete
+                                    </button>
+                                )}
+                            </div>
                         </form>
                     </div>
                 </motion.div>
@@ -356,7 +387,7 @@ const AdminSettings = () => {
                                     <p className="text-sm text-slate-600">Commission is deducted before work completion</p>
                                 </div>
                             </div>
-                            
+
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-2">
                                     <label className="text-sm font-medium text-slate-700">

@@ -13,9 +13,43 @@ const Mannequin = ({ color = "#4f46e5", image }) => {
 
     if (image) {
         return (
-            <group ref={ref} position={[0, 0, 0]}>
-                <Image url={image} transparent opacity={1} scale={[3, 4, 1]} side={2} />
-                {/* Add a subtle back plane so it's not invisible from behind if transparency issues occur, although side={2} handles it */}
+            <group ref={ref} position={[0, -0.5, 0]}>
+                {/* Pedestal */}
+                <mesh position={[0, -2.1, 0]}>
+                    <cylinderGeometry args={[1.5, 1.8, 0.2, 32]} />
+                    <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.1} />
+                </mesh>
+                <mesh position={[0, -2.0, 0]}>
+                    <cylinderGeometry args={[1.3, 1.3, 0.1, 32]} />
+                    <meshStandardMaterial color="#4f46e5" emissive="#4f46e5" emissiveIntensity={0.5} />
+                </mesh>
+
+                {/* The "3D" Cloth Display */}
+                <group position={[0, 0, 0]}>
+                    {/* Front View */}
+                    <Image
+                        url={image}
+                        transparent
+                        opacity={1}
+                        scale={[3.2, 4.2, 1]}
+                        position={[0, 0, 0.05]}
+                    />
+                    {/* Back View (Mirrored for better effect) */}
+                    <Image
+                        url={image}
+                        transparent
+                        opacity={0.8}
+                        scale={[3.2, 4.2, 1]}
+                        position={[0, 0, -0.05]}
+                        rotation={[0, Math.PI, 0]}
+                    />
+
+                    {/* Decorative aura */}
+                    <mesh position={[0, 0, 0]}>
+                        <planeGeometry args={[3.5, 4.5]} />
+                        <meshBasicMaterial color="#6366f1" transparent opacity={0.05} />
+                    </mesh>
+                </group>
             </group>
         );
     }

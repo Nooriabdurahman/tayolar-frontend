@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Scissors, DollarSign, Clock, Layout } from 'lucide-react';
+import { Scissors, DollarSign, Clock, Layout, Upload, X } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,8 @@ import { API_ENDPOINTS } from '../config/api';
 
 const CreateServicePage = () => {
     const [loading, setLoading] = useState(false);
+    const [image, setImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         skills: [],
@@ -23,6 +25,27 @@ const CreateServicePage = () => {
         setFormData({ ...formData, [name]: value });
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error("Image size should be less than 5MB");
+                return;
+            }
+            setImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const removeImage = () => {
+        setImage(null);
+        setImagePreview(null);
+    };
+
     const toggleSkill = (skill) => {
         setFormData(prev => ({
             ...prev,
@@ -30,16 +53,6 @@ const CreateServicePage = () => {
                 ? prev.skills.filter(s => s !== skill)
                 : [...prev.skills, skill]
         }));
-    };
-
-    const getAuthHeaders = () => {
-        const token = localStorage.getItem('token');
-        return {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        };
     };
 
     const handleSubmit = async (e) => {
@@ -54,16 +67,29 @@ const CreateServicePage = () => {
                 return;
             }
 
-            await axios.post(API_ENDPOINTS.SERVICES, {
-                name: formData.name,
-                skills: formData.skills,
-                price: parseFloat(formData.price),
-                turnaround: formData.turnaround,
-                description: formData.description
-            }, getAuthHeaders());
+            const user = JSON.parse(localStorage.getItem('user'));
+            const tailorId = user?.id;
+
+            const data = new FormData();
+            data.append('title', formData.name);
+            data.append('price', formData.price);
+            data.append('delivery', formData.turnaround);
+            data.append('description', formData.description);
+            data.append('category', formData.skills[0] || 'General');
+            data.append('tailorId', tailorId);
+
+            if (image) {
+                data.append('image', image);
+            }
+
+            await axios.post(API_ENDPOINTS.SERVICES, data, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
 
             toast.success("Service Created! Clients can now hire you.");
-            // Reset form
             setFormData({
                 name: '',
                 skills: [],
@@ -71,7 +97,8 @@ const CreateServicePage = () => {
                 turnaround: '7 Days',
                 description: ''
             });
-            // Optionally navigate to services list or dashboard
+            setImage(null);
+            setImagePreview(null);
             setTimeout(() => navigate('/dashboard'), 1500);
         } catch (error) {
             console.error('Error creating service:', error);
@@ -116,15 +143,45 @@ const CreateServicePage = () => {
                                 <label className="flex items-center text-yellow-400 mb-2 font-bold">
                                     <Layout className="w-5 h-5 mr-2" /> Service Name
                                 </label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     name="name"
                                     value={formData.name}
                                     onChange={handleChange}
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-white/30 focus:border-yellow-400 transition-colors outline-none" 
-                                    placeholder="e.g. Bespoke 3-Piece Suit" 
-                                    required 
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-white/30 focus:border-yellow-400 transition-colors outline-none"
+                                    placeholder="e.g. Bespoke 3-Piece Suit"
+                                    required
                                 />
+                            </div>
+
+                            <div>
+                                <label className="flex items-center text-yellow-400 mb-2 font-bold">
+                                    <Upload className="w-5 h-5 mr-2" /> Service Image
+                                </label>
+                                <div className="relative">
+                                    {!imagePreview ? (
+                                        <div className="w-full h-32 bg-black/20 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-yellow-400/50 transition-colors">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageChange}
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                            />
+                                            <Upload className="w-8 h-8 text-white/30 mb-2" />
+                                            <p className="text-white/30 text-sm">Upload a preview image</p>
+                                        </div>
+                                    ) : (
+                                        <div className="relative w-full h-32 rounded-xl overflow-hidden border border-white/10">
+                                            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                            <button
+                                                onClick={removeImage}
+                                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div>
@@ -133,14 +190,13 @@ const CreateServicePage = () => {
                                 </label>
                                 <div className="flex flex-wrap gap-2">
                                     {['Pattern Cutting', 'Embroidery', 'Alterations', 'Design'].map(skill => (
-                                        <span 
-                                            key={skill} 
+                                        <span
+                                            key={skill}
                                             onClick={() => toggleSkill(skill)}
-                                            className={`px-3 py-1 rounded-full text-xs text-white cursor-pointer transition-colors ${
-                                                formData.skills.includes(skill) 
-                                                    ? 'bg-yellow-400 text-black' 
-                                                    : 'bg-white/10 hover:bg-yellow-400 hover:text-black'
-                                            }`}
+                                            className={`px-3 py-1 rounded-full text-xs text-white cursor-pointer transition-colors ${formData.skills.includes(skill)
+                                                ? 'bg-yellow-400 text-black'
+                                                : 'bg-white/10 hover:bg-yellow-400 hover:text-black'
+                                                }`}
                                         >
                                             {skill}
                                         </span>
@@ -153,16 +209,16 @@ const CreateServicePage = () => {
                                     <label className="flex items-center text-yellow-400 mb-2 font-bold">
                                         <DollarSign className="w-5 h-5 mr-2" /> Base Price <span className="text-red-400 ml-1">*</span>
                                     </label>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         name="price"
                                         value={formData.price}
                                         onChange={handleChange}
                                         required
                                         min="1"
                                         step="0.01"
-                                        className="w-full bg-black/20 border-2 border-yellow-400/50 rounded-xl p-4 text-white text-lg font-semibold placeholder-white/30 focus:border-yellow-400 transition-colors outline-none" 
-                                        placeholder="250.00" 
+                                        className="w-full bg-black/20 border-2 border-yellow-400/50 rounded-xl p-4 text-white text-lg font-semibold placeholder-white/30 focus:border-yellow-400 transition-colors outline-none"
+                                        placeholder="250.00"
                                     />
                                     <p className="text-xs text-yellow-400/70 mt-1">Your service price</p>
                                 </div>
@@ -170,7 +226,7 @@ const CreateServicePage = () => {
                                     <label className="flex items-center text-yellow-400 mb-2 font-bold">
                                         <Clock className="w-5 h-5 mr-2" /> Turnaround
                                     </label>
-                                    <select 
+                                    <select
                                         name="turnaround"
                                         value={formData.turnaround}
                                         onChange={handleChange}
@@ -188,11 +244,11 @@ const CreateServicePage = () => {
                                 <label className="flex items-center text-yellow-400 mb-2 font-bold">
                                     Description
                                 </label>
-                                <textarea 
+                                <textarea
                                     name="description"
                                     value={formData.description}
                                     onChange={handleChange}
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-white/30 focus:border-yellow-400 transition-colors outline-none h-32" 
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-white/30 focus:border-yellow-400 transition-colors outline-none h-32"
                                     placeholder="Describe your process and what makes your service unique..."
                                     required
                                 ></textarea>

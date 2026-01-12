@@ -17,11 +17,34 @@ const UserDashboardPage = () => {
     useEffect(() => {
         const userData = localStorage.getItem('user');
         if (userData) {
-            setUser(JSON.parse(userData));
+            const parsedUser = JSON.parse(userData);
+            setUser(parsedUser);
+            fetchUserProfile();
         } else {
             navigate('/login');
         }
     }, [navigate]);
+
+    const fetchUserProfile = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const response = await axios.get(API_ENDPOINTS.USERS.PROFILE, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.data) {
+                setUser(response.data);
+                localStorage.setItem('user', JSON.stringify(response.data));
+            }
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+            if (error.response?.status === 401) {
+                handleLogout();
+            }
+        }
+    };
 
     useEffect(() => {
         if (activeTab === 'card') {
@@ -50,6 +73,73 @@ const UserDashboardPage = () => {
         navigate('/');
     };
 
+    const [isEditing, setIsEditing] = useState(false);
+    const [editData, setEditData] = useState({ name: '', email: '' });
+    const [updating, setUpdating] = useState(false);
+
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault();
+        setUpdating(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.put(API_ENDPOINTS.USERS.PROFILE, editData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.data) {
+                setUser(response.data);
+                localStorage.setItem('user', JSON.stringify(response.data));
+                setIsEditing(false);
+                toast.success('Profile updated successfully!');
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            toast.error(error.response?.data?.message || 'Failed to update profile');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const startEditing = () => {
+        setEditData({ name: user.name, email: user.email });
+        setIsEditing(true);
+    };
+
+    const handleAvatarUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUpdating(true);
+        try {
+            const formData = new FormData();
+            formData.append('avatar', file);
+            formData.append('name', user.name); // Send name as well to satisfy backend update
+
+            const token = localStorage.getItem('token');
+            const response = await axios.put(API_ENDPOINTS.USERS.PROFILE, formData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            const updatedUserData = response.data.user;
+            const updatedProfileData = response.data.profile;
+
+            const fullUser = { ...updatedUserData, profile: updatedProfileData };
+            setUser(fullUser);
+            localStorage.setItem('user', JSON.stringify(fullUser));
+            toast.success("Avatar updated successfully!");
+        } catch (error) {
+            console.error("Avatar upload failed:", error);
+            toast.error("Failed to update avatar");
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     if (!user) return null;
 
     return (
@@ -70,12 +160,22 @@ const UserDashboardPage = () => {
                         <div className="flex items-center justify-between flex-wrap gap-4">
                             <div className="flex items-center gap-6">
                                 <div className="relative">
-                                    <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md border-4 border-white/30">
-                                        <User className="w-12 h-12" />
+                                    <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md border-4 border-white/30 overflow-hidden">
+                                        {user.avatarUrl ? (
+                                            <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User className="w-12 h-12" />
+                                        )}
                                     </div>
-                                    <button className="absolute bottom-0 right-0 p-2 bg-indigo-700 rounded-full hover:bg-indigo-800 transition-colors">
+                                    <label className="absolute bottom-0 right-0 p-2 bg-indigo-700 rounded-full hover:bg-indigo-800 transition-colors cursor-pointer">
                                         <Camera className="w-4 h-4" />
-                                    </button>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="image/*"
+                                            onChange={handleAvatarChange}
+                                        />
+                                    </label>
                                 </div>
                                 <div>
                                     <h1 className="text-3xl font-bold mb-1">{user.name}</h1>
@@ -108,11 +208,10 @@ const UserDashboardPage = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 px-8 py-4 font-semibold transition-colors border-b-2 ${
-                                        activeTab === tab.id
-                                            ? 'border-indigo-600 text-indigo-600'
-                                            : 'border-transparent text-slate-600 hover:text-indigo-600'
-                                    }`}
+                                    className={`flex items-center gap-2 px-8 py-4 font-semibold transition-colors border-b-2 ${activeTab === tab.id
+                                        ? 'border-indigo-600 text-indigo-600'
+                                        : 'border-transparent text-slate-600 hover:text-indigo-600'
+                                        }`}
                                 >
                                     <tab.icon className="w-5 h-5" />
                                     {tab.label}
@@ -131,25 +230,72 @@ const UserDashboardPage = () => {
                             >
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className="text-2xl font-bold text-slate-900">Profile Information</h2>
-                                    <button className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors flex items-center gap-2">
-                                        <Edit className="w-4 h-4" />
-                                        Edit
-                                    </button>
+                                    {!isEditing && (
+                                        <button
+                                            onClick={startEditing}
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                            Edit
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="space-y-4">
-                                    <div className="p-4 bg-slate-50 rounded-xl">
-                                        <label className="text-sm text-slate-500">Full Name</label>
-                                        <p className="text-lg font-semibold text-slate-900">{user.name}</p>
+
+                                {isEditing ? (
+                                    <form onSubmit={handleUpdateProfile} className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                                            <input
+                                                type="text"
+                                                value={editData.name}
+                                                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                                            <input
+                                                type="email"
+                                                value={editData.email}
+                                                onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <button
+                                                type="submit"
+                                                disabled={updating}
+                                                className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                                            >
+                                                {updating ? 'Saving...' : 'Save Changes'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsEditing(false)}
+                                                className="px-6 py-2 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className="p-4 bg-slate-50 rounded-xl">
+                                            <label className="text-sm text-slate-500">Full Name</label>
+                                            <p className="text-lg font-semibold text-slate-900">{user.name}</p>
+                                        </div>
+                                        <div className="p-4 bg-slate-50 rounded-xl">
+                                            <label className="text-sm text-slate-500">Email</label>
+                                            <p className="text-lg font-semibold text-slate-900">{user.email}</p>
+                                        </div>
+                                        <div className="p-4 bg-slate-50 rounded-xl">
+                                            <label className="text-sm text-slate-500">Role</label>
+                                            <p className="text-lg font-semibold text-slate-900">{user.role}</p>
+                                        </div>
                                     </div>
-                                    <div className="p-4 bg-slate-50 rounded-xl">
-                                        <label className="text-sm text-slate-500">Email</label>
-                                        <p className="text-lg font-semibold text-slate-900">{user.email}</p>
-                                    </div>
-                                    <div className="p-4 bg-slate-50 rounded-xl">
-                                        <label className="text-sm text-slate-500">Role</label>
-                                        <p className="text-lg font-semibold text-slate-900">{user.role}</p>
-                                    </div>
-                                </div>
+                                )}
                             </motion.div>
                         )}
 
@@ -169,9 +315,9 @@ const UserDashboardPage = () => {
                                         {/* Card Visualization */}
                                         <div className="w-full aspect-[1.586/1] rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-lg relative overflow-hidden">
                                             {adminCard.imageUrl && (
-                                                <img 
-                                                    src={adminCard.imageUrl} 
-                                                    alt="Card" 
+                                                <img
+                                                    src={adminCard.imageUrl}
+                                                    alt="Card"
                                                     className="absolute inset-0 w-full h-full object-cover opacity-30"
                                                 />
                                             )}

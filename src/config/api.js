@@ -19,8 +19,15 @@ export const API_ENDPOINTS = {
         COMMISSION_SETTINGS: `${API_BASE_URL}/api/admin/commission/settings`,
         COMMISSIONS: `${API_BASE_URL}/api/admin/commissions`,
         COMMISSION_STATS: `${API_BASE_URL}/api/admin/commission/stats`,
+        USERS: `${API_BASE_URL}/api/admin/users`,
+        JOBS: `${API_BASE_URL}/api/admin/jobs`,
     },
     CARDS: {
         ACTIVE: `${API_BASE_URL}/api/cards/active`,
     },
+    UPLOAD: {
+        SINGLE: `${API_BASE_URL}/api/upload/single`,
+        MULTIPLE: `${API_BASE_URL}/api/upload/multiple`,
+    },
+    HEALTH: `${API_BASE_URL}/`,
 };

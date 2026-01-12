@@ -30,7 +30,12 @@ const LoginPage = () => {
             toast.success('Welcome back!');
             setTimeout(() => navigate('/'), 1500);
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Login failed. Please try again.');
+            if (err.response?.status === 403 && err.response?.data?.email) {
+                toast.error('Email not verified. Redirecting to verification...');
+                setTimeout(() => navigate('/verify-email', { state: { email: err.response.data.email } }), 1500);
+            } else {
+                toast.error(err.response?.data?.message || 'Login failed. Please try again.');
+            }
         } finally {
             setLoading(false);
         }

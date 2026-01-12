@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Users, Target, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import Tailor3DScene from '../components/landing/Tailor3DScene';
+import { API_ENDPOINTS } from '../config/api';
 
 // --- About Us ---
 export const AboutPage = () => {
@@ -188,14 +190,22 @@ export const ContactPage = () => {
 
 // --- Services ---
 export const ServicesPage = () => {
-    const services = [
-        { title: 'Custom Suits', icon: '👔', desc: 'Handcrafted suits tailored to your exact measurements and style preferences.', price: 'From $599' },
-        { title: 'Alterations', icon: '✂️', desc: 'Professional alterations for any garment to ensure the perfect fit.', price: 'From $49' },
-        { title: 'Wedding Dresses', icon: '👗', desc: 'Bespoke wedding dresses designed and crafted to make your special day perfect.', price: 'From $1299' },
-        { title: 'Bespoke Shirts', icon: '👕', desc: 'Custom-made shirts with premium fabrics and precise tailoring.', price: 'From $149' },
-        { title: 'Leather Repair', icon: '🧥', desc: 'Expert restoration and repair services for leather garments and accessories.', price: 'From $99' },
-        { title: 'Uniforms', icon: '🎖️', desc: 'Professional uniforms tailored for businesses and organizations.', price: 'Custom Quote' },
-    ];
+    const [services, setServices] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchServices = async () => {
+            try {
+                const response = await axios.get(API_ENDPOINTS.SERVICES);
+                setServices(response.data);
+            } catch (error) {
+                console.error('Error fetching services:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchServices();
+    }, []);
 
     return (
         <div className="relative min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 pt-24 pb-12">
@@ -213,30 +223,46 @@ export const ServicesPage = () => {
                     <p className="text-xl text-slate-600">Premium tailoring services for every need</p>
                 </motion.div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {services.map((service, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow p-8 group"
-                        >
-                            <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">{service.icon}</div>
-                            <h3 className="text-2xl font-bold text-slate-900 mb-3">{service.title}</h3>
-                            <p className="text-slate-600 mb-4">{service.desc}</p>
-                            <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-                                <span className="text-lg font-bold text-indigo-600">{service.price}</span>
-                                <Link
-                                    to="/contact"
-                                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-semibold"
+                {loading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                    </div>
+                ) : (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {services.length > 0 ? (
+                            services.map((service, index) => (
+                                <motion.div
+                                    key={service.id || index}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow p-8 group"
                                 >
-                                    Book Now
-                                </Link>
+                                    <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">
+                                        {service.imageUrl ? (
+                                            <img src={service.imageUrl} alt={service.name} className="w-20 h-20 object-cover rounded-full mx-auto" />
+                                        ) : '✂️'}
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">{service.name}</h3>
+                                    <p className="text-slate-600 mb-4 line-clamp-3">{service.description}</p>
+                                    <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+                                        <span className="text-lg font-bold text-indigo-600">${service.price?.toFixed(2)}</span>
+                                        <Link
+                                            to="/contact"
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-semibold"
+                                        >
+                                            Book Now
+                                        </Link>
+                                    </div>
+                                </motion.div>
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center text-slate-500 py-12">
+                                No services available at the moment.
                             </div>
-                        </motion.div>
-                    ))}
-                </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

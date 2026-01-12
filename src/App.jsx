@@ -16,26 +16,7 @@ import AdminSettings from './pages/admin/AdminSettings';
 // Job & Service Pages
 import PostJobPage from './pages/PostJobPage';
 import CreateServicePage from './pages/CreateServicePage';
-
-// Temporary Dashboard Navigation
-const Dashboard = () => (
-  <div className="min-h-screen pt-24 px-6 bg-slate-50 text-center">
-    <h1 className="text-3xl font-bold text-slate-800 mb-8">Dashboard Portal</h1>
-    <div className="flex justify-center gap-6">
-      <a href="/post-job" className="p-8 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-xl">
-        <h3 className="text-xl font-bold mb-2">I am a Client</h3>
-        <p>Post a Job</p>
-      </a>
-      <a href="/create-service" className="p-8 bg-yellow-500 text-black rounded-2xl hover:bg-yellow-400 transition-colors shadow-xl">
-        <h3 className="text-xl font-bold mb-2">I am a Tailor</h3>
-        <p>Create a Service</p>
-      </a>
-    </div>
-  </div>
-);
-
-// Placeholder pages
-const Marketplace = () => <div className="p-8 pt-20 text-center">Marketplace Page</div>;
+import MarketplacePage from './pages/MarketplacePage';
 
 // Premium Imports
 import PricingPage from './pages/PricingPage';
@@ -140,7 +121,7 @@ function App() {
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/dashboard" element={<UserDashboardPage />} />
-          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/post-job" element={<PostJobPage />} />
           <Route path="/create-service" element={<CreateServicePage />} />
 
