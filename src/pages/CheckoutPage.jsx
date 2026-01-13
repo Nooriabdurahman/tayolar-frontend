@@ -90,7 +90,7 @@ const CheckoutPage = () => {
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl"></div>
             </div>
             <Toaster position="top-center" />
-            <div className="relative z-10 max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="relative z-10 max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-2 md:px-0 mt-20 md:mt-0">
                 {/* Order Summary */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
@@ -143,9 +143,9 @@ const CheckoutPage = () => {
                         <div className="h-full flex flex-col justify-between relative z-10">
                             <div className="flex justify-between items-start">
                                 <div className="w-12 h-8 bg-yellow-500/80 rounded-md"></div>
-                                <span className="font-mono text-lg tracking-widest">{adminCard ? 'ADMIN CARD' : 'CREDIT'}</span>
+                                <span className="font-mono text-xs sm:text-base tracking-widest">{adminCard ? 'ADMIN CARD' : 'CREDIT'}</span>
                             </div>
-                            <div className="font-mono text-2xl tracking-widest my-4">
+                            <div className="font-mono text-lg sm:text-2xl tracking-widest my-2 sm:my-4">
                                 {cardData.number || (adminCard ? adminCard.cardNumber.replace(/(.{4})/g, '$1 ').trim() : '•••• •••• •••• ••••')}
                             </div>
                             <div className="flex justify-between items-end font-mono">
@@ -191,7 +191,7 @@ const CheckoutPage = () => {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-white/90 mb-1">Expiry Date</label>
                                 <div className="relative">

@@ -95,39 +95,64 @@ const Navbar = () => {
 
             {/* Mobile menu */}
             {isOpen && (
-                <div className="md:hidden bg-white border-t border-gray-200 absolute w-full shadow-xl text-slate-900">
-                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                        {['Features', 'How it Works', 'Testimonials', 'Pricing', 'Post Job', 'Create Service'].map((item) => (
-                            <Link
-                                key={item}
-                                to={`/${item.toLowerCase().replace(/ /g, '-')}`}
-                                className="block px-3 py-2 rounded-md text-base font-medium hover:text-indigo-600 hover:bg-indigo-50"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                {item}
-                            </Link>
-                        ))}
-                        {user ? (
-                            <>
-                                <Link to="/dashboard" className="block px-3 py-2 rounded-md text-base font-medium hover:text-indigo-600 hover:bg-indigo-50">
-                                    Dashboard
+                <>
+                    {/* Backdrop for mobile menu */}
+                    <div
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden"
+                        onClick={() => setIsOpen(false)}
+                    />
+                    <div className="md:hidden bg-white border-t border-gray-200 absolute w-full shadow-2xl z-50 text-slate-900 transform transition-all duration-300 ease-in-out">
+                        <div className="px-4 pt-4 pb-6 space-y-2">
+                            {['Features', 'How it Works', 'Testimonials', 'Pricing'].map((item) => (
+                                <Link
+                                    key={item}
+                                    to={`/${item.toLowerCase().replace(/ /g, '-')}`}
+                                    className="block px-4 py-3 rounded-xl text-lg font-semibold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    {item}
                                 </Link>
-                                <button onClick={handleLogout} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-indigo-50">
-                                    Logout
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <Link to="/login" className="block px-3 py-2 rounded-md text-base font-medium hover:text-indigo-600 hover:bg-indigo-50">
-                                    Login
+                            ))}
+                            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+                                <Link
+                                    to="/post-job"
+                                    className="px-4 py-3 rounded-xl bg-indigo-50 text-indigo-700 font-bold text-center text-sm"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    Post Job
                                 </Link>
-                                <Link to="/signup" className="block px-3 py-2 rounded-md text-base font-medium text-indigo-600 font-bold hover:bg-indigo-50">
-                                    Get Started
+                                <Link
+                                    to="/create-service"
+                                    className="px-4 py-3 rounded-xl bg-yellow-400 text-black font-bold text-center text-sm"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    Service
                                 </Link>
-                            </>
-                        )}
+                            </div>
+                            <div className="pt-4 space-y-2">
+                                {user ? (
+                                    <>
+                                        <Link to="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center px-4 py-3 rounded-xl text-lg font-semibold text-slate-700 hover:bg-slate-50">
+                                            <User className="w-5 h-5 mr-3" /> Dashboard
+                                        </Link>
+                                        <button onClick={() => { handleLogout(); setIsOpen(false); }} className="flex items-center w-full px-4 py-3 rounded-xl text-lg font-semibold text-red-600 hover:bg-red-50">
+                                            <LogOut className="w-5 h-5 mr-3" /> Logout
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Link to="/login" onClick={() => setIsOpen(false)} className="block px-4 py-3 rounded-xl text-lg font-semibold text-slate-700 hover:bg-slate-50 text-center">
+                                            Log in
+                                        </Link>
+                                        <Link to="/signup" onClick={() => setIsOpen(false)} className="block px-4 py-4 rounded-xl bg-indigo-600 text-white font-bold text-center shadow-lg shadow-indigo-200">
+                                            Get Started
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </>
             )}
         </nav>
     );

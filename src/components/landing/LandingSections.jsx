@@ -17,9 +17,9 @@ export const HeroSection = () => {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
-                    className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 tracking-tight"
+                    className="text-4xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 tracking-tight leading-tight"
                 >
-                    Masterful Tailoring, <br />
+                    Masterful Tailoring, <br className="hidden md:block" />
                     Delivered to You.
                 </motion.h1>
 
@@ -27,7 +27,7 @@ export const HeroSection = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.4 }}
-                    className="mt-6 text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto font-light"
+                    className="mt-6 text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto font-light px-4"
                 >
                     Connect with expert tailors for bespoke clothing, alterations, and custom designs. Quality craftsmanship meets modern convenience.
                 </motion.p>
