@@ -53,7 +53,9 @@ const SitemapPage = () => {
                 { path: '/help', label: 'Help & Support' },
                 { path: '/faq', label: 'FAQ' },
                 { path: '/testimonials', label: 'Testimonials' },
-                { path: '/features', label: 'Features' },
+                { path: '/features', label: 'Features' },  
+
+                { path: '/sitemap', label: 'Sitemap' },
             ],
         },
     ];

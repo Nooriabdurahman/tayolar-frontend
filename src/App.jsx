@@ -87,6 +87,7 @@ const PublicLayout = () => (
             <li><Link to="/help" className="hover:text-white transition-colors">Help & Support</Link></li>
             <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
             <li><Link to="/how-it-works" className="hover:text-white transition-colors">How it Works</Link></li>
+            <li><Link to="/assest" className="hover:text-white transition-colors">Ai Assest</Link></li>
           </ul>
         </div>
         <div>
@@ -121,6 +122,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+       
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/dashboard" element={<UserDashboardPage />} />

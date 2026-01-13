@@ -47,7 +47,7 @@ const Navbar = () => {
                         <Link to="/how-it-works" className={`text-sm font-medium ${isLanding ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-indigo-600'} transition-colors`}>How it Works</Link>
                         <Link to="/testimonials" className={`text-sm font-medium ${isLanding ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-indigo-600'} transition-colors`}>Success Stories</Link>
                         <Link to="/pricing" className={`text-sm font-medium ${isLanding ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-indigo-600'} transition-colors`}>Pricing</Link>
-
+                        <Link to="/sitemap" className={`text-sm font-medium ${isLanding ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-indigo-600'} transition-colors`}>Sitemap</Link>
                         {/* Marketplace Actions */}
                         <div className="flex space-x-4">
                             <Link to="/post-job" className={`px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider ${isLanding ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'} transition-all`}>

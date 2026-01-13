@@ -21,7 +21,7 @@ const AIAssistant = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post(API_ENDPOINTS.AI.CHAT || 'http://localhost:5000/api/ai/chat', { message: userMsg });
+            const response = await axios.post(API_ENDPOINTS.AI.CHAT || 'https://tayolar-backend.onrender.com/api/ai/chat', { message: userMsg });
             setMessages(prev => [...prev, { role: 'bot', text: response.data.response }]);
         } catch (error) {
             console.error('AI Error:', error);
