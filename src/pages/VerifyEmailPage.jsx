@@ -45,6 +45,18 @@ const VerifyEmailPage = () => {
         }
     };
 
+    const handleResendCode = async () => {
+        setLoading(true);
+        try {
+            await axios.post(API_ENDPOINTS.AUTH.RESEND_CODE, { email });
+            toast.success('New verification code sent!');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to resend code.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-emerald-900 to-teal-900">
             <div className="absolute inset-0 z-0 opacity-30">
@@ -87,7 +99,11 @@ const VerifyEmailPage = () => {
                 </form>
 
                 <div className="mt-6 text-center">
-                    <button className="text-white/50 text-sm hover:text-white transition-colors">
+                    <button
+                        onClick={handleResendCode}
+                        disabled={loading}
+                        className="text-white/50 text-sm hover:text-white transition-colors disabled:opacity-50"
+                    >
                         Didn't receive code? Resend
                     </button>
                 </div>

@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = 'https://tayolar-backend.onrender.com';
+export const API_BASE_URL = 'http://localhost:5000';
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -7,6 +7,7 @@ export const API_ENDPOINTS = {
         LOGIN: `${API_BASE_URL}/api/auth/login`,
         SIGNUP: `${API_BASE_URL}/api/auth/signup`,
         VERIFY_EMAIL: `${API_BASE_URL}/api/auth/verify-email`,
+        RESEND_CODE: `${API_BASE_URL}/api/auth/resend-code`,
     },
     USERS: {
         PROFILE: `${API_BASE_URL}/api/users/profile`,
@@ -29,5 +30,6 @@ export const API_ENDPOINTS = {
         SINGLE: `${API_BASE_URL}/api/upload/single`,
         MULTIPLE: `${API_BASE_URL}/api/upload/multiple`,
     },
+    ORDERS: `${API_BASE_URL}/api/orders`,
     HEALTH: `${API_BASE_URL}/`,
 };

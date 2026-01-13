@@ -173,7 +173,7 @@ const UserDashboardPage = () => {
                                             type="file"
                                             className="hidden"
                                             accept="image/*"
-                                            onChange={handleAvatarChange}
+                                            onChange={handleAvatarUpload}
                                         />
                                     </label>
                                 </div>

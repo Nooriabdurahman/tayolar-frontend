@@ -3,16 +3,34 @@ import { CreditCard, Calendar, Lock, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [adminCard, setAdminCard] = useState(null);
     const [cardData, setCardData] = useState({
         number: '',
         name: '',
         expiry: '',
         cvc: ''
     });
+
+    React.useEffect(() => {
+        loadActiveCard();
+    }, []);
+
+    const loadActiveCard = async () => {
+        try {
+            const response = await axios.get(API_ENDPOINTS.CARDS.ACTIVE);
+            if (response.data) {
+                setAdminCard(response.data);
+            }
+        } catch (error) {
+            console.error('Error loading admin card:', error);
+        }
+    };
 
     const handleInputChange = (e) => {
         let { name, value } = e.target;
@@ -28,30 +46,41 @@ const CheckoutPage = () => {
         setCardData({ ...cardData, [name]: value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
-            toast.custom((t) => (
-                <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
-                    <div className="flex-1 w-0 p-4">
-                        <div className="flex items-start">
-                            <div className="flex-shrink-0 pt-0.5">
-                                <CheckCircle className="h-10 w-10 text-green-500" />
-                            </div>
-                            <div className="ml-3 flex-1">
-                                <p className="text-sm font-medium text-gray-900">Payment Successful!</p>
-                                <p className="mt-1 text-sm text-gray-500">Welcome to Premium. Redirecting...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            ));
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Please login to complete your purchase');
+                navigate('/login');
+                return;
+            }
+
+            // In a real scenario, we'd process payment through a gateway here
+            // For this project, we create the order in the backend as "PENDING"
+
+            // Mocking service and tailor IDs for the premium plan upgrade
+            // In a real flow, these would come from the context or location state
+            const orderData = {
+                serviceId: 'PREMIUM_PLAN',
+                tailorId: 'ADMIN_USER',
+                amount: 19.00
+            };
+
+            await axios.post(API_ENDPOINTS.ORDERS, orderData, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            toast.success('Payment Successful! Welcome to Premium.');
             setTimeout(() => navigate('/dashboard'), 2000);
-        }, 2000);
+        } catch (error) {
+            console.error('Checkout error:', error);
+            toast.error(error.response?.data?.message || 'Payment failed. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -107,14 +136,17 @@ const CheckoutPage = () => {
 
                     {/* Card Visualization */}
                     <div className="mb-8 w-full aspect-[1.586/1] rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-lg relative overflow-hidden">
+                        {adminCard?.imageUrl && (
+                            <img src={adminCard.imageUrl} alt="Card" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                        )}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
                         <div className="h-full flex flex-col justify-between relative z-10">
                             <div className="flex justify-between items-start">
                                 <div className="w-12 h-8 bg-yellow-500/80 rounded-md"></div>
-                                <span className="font-mono text-lg tracking-widest">CREDIT</span>
+                                <span className="font-mono text-lg tracking-widest">{adminCard ? 'ADMIN CARD' : 'CREDIT'}</span>
                             </div>
                             <div className="font-mono text-2xl tracking-widest my-4">
-                                {cardData.number || '•••• •••• •••• ••••'}
+                                {cardData.number || (adminCard ? adminCard.cardNumber.replace(/(.{4})/g, '$1 ').trim() : '•••• •••• •••• ••••')}
                             </div>
                             <div className="flex justify-between items-end font-mono">
                                 <div>
