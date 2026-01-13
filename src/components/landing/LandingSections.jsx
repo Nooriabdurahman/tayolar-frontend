@@ -79,13 +79,16 @@ export const FeaturesSection = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: i * 0.1 }}
-                            className="bg-slate-50 p-8 rounded-3xl shadow-sm hover:shadow-xl transition-shadow border border-slate-100 group"
+                            className="bg-white p-8 rounded-3xl shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all border border-slate-100 group relative overflow-hidden"
                         >
-                            <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mb-6 text-indigo-600 group-hover:scale-110 transition-transform">
-                                <f.icon className="h-7 w-7" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="relative z-10">
+                                <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mb-6 text-indigo-600 group-hover:scale-110 transition-transform">
+                                    <f.icon className="h-7 w-7" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 mb-3">{f.title}</h3>
+                                <p className="text-slate-600 leading-relaxed">{f.desc}</p>
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 mb-3">{f.title}</h3>
-                            <p className="text-slate-600 leading-relaxed">{f.desc}</p>
                         </motion.div>
                     ))}
                 </div>
@@ -124,10 +127,10 @@ export const HowItWorksSection = () => {
                             transition={{ duration: 0.5, delay: i * 0.15 }}
                             className="relative z-10 text-center"
                         >
-                            <div className="w-24 h-24 bg-slate-800 rounded-full border-4 border-indigo-500 flex items-center justify-center text-3xl font-bold mx-auto mb-6 shadow-lg shadow-indigo-500/20">
-                                {step.num}
+                            <div className="w-24 h-24 bg-slate-800 rounded-full border-4 border-indigo-500/50 group-hover:border-indigo-500 flex items-center justify-center text-3xl font-bold mx-auto mb-6 shadow-lg shadow-indigo-500/20 transition-all">
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">{step.num}</span>
                             </div>
-                            <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
+                            <h3 className="text-2xl font-bold mb-3 text-indigo-50">{step.title}</h3>
                             <p className="text-slate-400 max-w-xs mx-auto">{step.desc}</p>
                         </motion.div>
                     ))}

@@ -42,7 +42,7 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="relative min-h-screen pt-24 flex items-center justify-center overflow-hidden">
             <ThreeBackground />
             <Toaster position="top-center" reverseOrder={false} />
 

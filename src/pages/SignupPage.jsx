@@ -35,7 +35,7 @@ const SignupPage = () => {
     };
 
     return (
-        <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900">
+        <div className="relative min-h-screen pt-24 flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900">
             <div className="absolute inset-0 z-0 opacity-30">
                 <Tailor3DScene />
             </div>
