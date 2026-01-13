@@ -43,11 +43,14 @@ import HelpSupportPage from './pages/HelpSupportPage';
 import ProductsShopPage from './pages/ProductsShopPage';
 import MaintenancePage from './pages/MaintenancePage';
 import SitemapPage from './pages/SitemapPage';
+import FeedPage from './pages/FeedPage';
+import AIAssistant from './components/common/AIAssistant';
 
 // Layout for public pages (Navbar + Footer)
 const PublicLayout = () => (
   <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
     <Navbar />
+    <AIAssistant />
     <main className="flex-grow">
       <Outlet />
     </main>
@@ -124,6 +127,7 @@ function App() {
           <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/post-job" element={<PostJobPage />} />
           <Route path="/create-service" element={<CreateServicePage />} />
+          <Route path="/feed" element={<FeedPage />} />
 
           {/* Main Content Pages */}
           <Route path="/features" element={<FeaturesPage />} />

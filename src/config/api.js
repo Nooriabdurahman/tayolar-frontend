@@ -31,5 +31,14 @@ export const API_ENDPOINTS = {
         MULTIPLE: `${API_BASE_URL}/api/upload/multiple`,
     },
     ORDERS: `${API_BASE_URL}/api/orders`,
+    SOCIAL: {
+        FEED: `${API_BASE_URL}/api/social/feed`,
+        POST: `${API_BASE_URL}/api/social/post`,
+        LIKE: `${API_BASE_URL}/api/social/like`,
+        FOLLOW: `${API_BASE_URL}/api/social/follow`,
+    },
+    AI: {
+        CHAT: `${API_BASE_URL}/api/ai/chat`,
+    },
     HEALTH: `${API_BASE_URL}/`,
 };
